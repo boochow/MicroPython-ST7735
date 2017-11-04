@@ -1,7 +1,9 @@
 #driver for Sainsmart 1.8" TFT display ST7735
 #Translated by Guy Carver from the ST7735 sample code.
+#Modirfied for micropython-esp32 by boochow 
 
-import pyb
+import machine
+import time
 from math import sqrt
 
 #TFTRotations and TFTRGB are bits to set
@@ -21,11 +23,11 @@ TFTRotations = [0x00, 0x60, 0xC0, 0xA0]
 TFTBGR = 0x08 #When set color is bgr else rgb.
 TFTRGB = 0x00
 
-@micropython.native
+#@micropython.native
 def clamp( aValue, aMin, aMax ) :
   return max(aMin, min(aMax, aValue))
 
-@micropython.native
+#@micropython.native
 def TFTColor( aR, aG, aB ) :
   '''Create a 16 bit rgb value from the given R,G,B from 0-255.
      This assumes rgb 565 layout and will be incorrect for bgr.'''
@@ -99,19 +101,17 @@ class TFT(object) :
     '''Create a 565 rgb TFTColor value'''
     return TFTColor(aR, aG, aB)
 
-  def __init__( self, aLoc, aDC, aReset ) :
+  def __init__( self, spi, aDC, aReset, aCS) :
     """aLoc SPI pin location is either 1 for 'X' or 2 for 'Y'.
        aDC is the DC pin and aReset is the reset pin."""
     self._size = ScreenSize
     self.rotate = 0                    #Vertical with top toward pins.
     self._rgb = True                   #color order of rgb.
-    self.dc  = pyb.Pin(aDC, pyb.Pin.OUT_PP, pyb.Pin.PULL_DOWN)
-    self.reset = pyb.Pin(aReset, pyb.Pin.OUT_PP, pyb.Pin.PULL_DOWN)
-    rate = 200000 #100000000 #Set way high but will be clamped to a maximum in SPI constructor.
-    cs = "X5" if aLoc == 1 else "Y5"
-    self.cs = pyb.Pin(cs, pyb.Pin.OUT_PP, pyb.Pin.PULL_DOWN)
-    self.cs.high()
-    self.spi = pyb.SPI(aLoc, pyb.SPI.MASTER, baudrate = rate, polarity = 1, phase = 0, crc=None)
+    self.dc  = machine.Pin(aDC, machine.Pin.OUT, machine.Pin.PULL_DOWN)
+    self.reset = machine.Pin(aReset, machine.Pin.OUT, machine.Pin.PULL_DOWN)
+    self.cs = machine.Pin(aCS, machine.Pin.OUT, machine.Pin.PULL_DOWN)
+    self.cs(1)
+    self.spi = spi
     self.colorData = bytearray(2)
     self.windowLocData = bytearray(4)
 
@@ -147,7 +147,7 @@ class TFT(object) :
         self._size =(self._size[1], self._size[0])
       self._setMADCTL()
 
-  @micropython.native
+#  @micropython.native
   def pixel( self, aPos, aColor ) :
     '''Draw a pixel at the given position'''
     if 0 <= aPos[0] < self._size[0] and 0 <= aPos[1] < self._size[1]:
@@ -155,7 +155,7 @@ class TFT(object) :
       self._pushcolor(aColor)
 
 #   @micropython.native
-  def text( self, aPos, aString, aColor, aFont, aSize = 1 ) :
+  def text( self, aPos, aString, aColor, aFont, aSize = 1, nowrap = False ) :
     '''Draw a text at the given position.  If the string reaches the end of the
        display it is wrapped to aPos[0] on the next line.  aSize may be an integer
        which will size the font uniformly on w,h or a or any type that may be
@@ -178,8 +178,11 @@ class TFT(object) :
       #We check > rather than >= to let the right (blank) edge of the
       # character print off the right of the screen.
       if px + width > self._size[0]:
-        py += aFont["Height"] * wh[1] + 1
-        px = aPos[0]
+        if nowrap:
+          break
+        else:
+          py += aFont["Height"] * wh[1] + 1
+          px = aPos[0]
 
 #   @micropython.native
   def char( self, aPos, aChar, aColor, aFont, aSizes ) :
@@ -375,11 +378,11 @@ class TFT(object) :
     self.colorData[0] = aColor >> 8
     self.colorData[1] = aColor
 
-    self.dc.high()
-    self.cs.low()
+    self.dc(1)
+    self.cs(0)
     for i in range(aPixels):
-      self.spi.send(self.colorData)
-    self.cs.high()
+      self.spi.write(self.colorData)
+    self.cs(1)
 
 #   @micropython.native
   def _setwindowpoint( self, aPos ) :
@@ -416,67 +419,67 @@ class TFT(object) :
 
     self._writecommand(TFT.RAMWR)            #Write to RAM.
 
-  @micropython.native
+  #@micropython.native
   def _writecommand( self, aCommand ) :
     '''Write given command to the device.'''
-    self.dc.low()
-    self.cs.low()
-    self.spi.send(aCommand)
-    self.cs.high()
+    self.dc(0)
+    self.cs(0)
+    self.spi.write(bytearray([aCommand]))
+    self.cs(1)
 
-  @micropython.native
+  #@micropython.native
   def _writedata( self, aData ) :
     '''Write given data to the device.  This may be
        either a single int or a bytearray of values.'''
-    self.dc.high()
-    self.cs.low()
-    self.spi.send(aData)
-    self.cs.high()
+    self.dc(1)
+    self.cs(0)
+    self.spi.write(aData)
+    self.cs(1)
 
-  @micropython.native
+  #@micropython.native
   def _pushcolor( self, aColor ) :
     '''Push given color to the device.'''
     self.colorData[0] = aColor >> 8
     self.colorData[1] = aColor
     self._writedata(self.colorData)
 
-  @micropython.native
+  #@micropython.native
   def _setMADCTL( self ) :
     '''Set screen rotation and RGB/BGR format.'''
     self._writecommand(TFT.MADCTL)
     rgb = TFTRGB if self._rgb else TFTBGR
-    self._writedata(TFTRotations[self.rotate] | rgb)
+    self._writedata(bytearray([TFTRotations[self.rotate] | rgb]))
 
-  @micropython.native
+  #@micropython.native
   def _reset( self ) :
     '''Reset the device.'''
-    self.dc.low()
-    self.reset.high()
-    pyb.delay(500)
-    self.reset.low()
-    pyb.delay(500)
-    self.reset.high()
-    pyb.delay(500)
+    self.dc(0)
+    self.reset(1)
+    time.sleep_us(500)
+    self.reset(0)
+    time.sleep_us(500)
+    self.reset(1)
+    time.sleep_us(500)
 
   def initb( self ) :
     '''Initialize blue tab version.'''
     self._size = (ScreenSize[0] + 2, ScreenSize[1] + 1)
     self._reset()
     self._writecommand(TFT.SWRESET)              #Software reset.
-    pyb.delay(50)
+    time.sleep_us(50)
     self._writecommand(TFT.SLPOUT)               #out of sleep mode.
-    pyb.delay(500)
+    time.sleep_us(500)
 
     data1 = bytearray(1)
     self._writecommand(TFT.COLMOD)               #Set color mode.
     data1[0] = 0x05                             #16 bit color.
     self._writedata(data1)
-    pyb.delay(10)
+    time.sleep_us(10)
 
     data3 = bytearray([0x00, 0x06, 0x03])       #fastest refresh, 6 lines front, 3 lines back.
     self._writecommand(TFT.FRMCTR1)              #Frame rate control.
     self._writedata(data3)
-    pyb.delay(10)
+    time.sleep_us(10)
 
     self._writecommand(TFT.MADCTL)
     data1[0] = 0x08                             #row address/col address, bottom to top refresh
@@ -496,7 +499,7 @@ class TFT(object) :
     data2[0] = 0x02   #GVDD = 4.7V
     data2[1] = 0x70   #1.0uA
     self._writedata(data2)
-    pyb.delay(10)
+    time.sleep_us(10)
 
     self._writecommand(TFT.PWCTR2)               #Power control
     data1[0] = 0x05                             #VGH = 14.7V, VGL = -7.35V
@@ -511,7 +514,7 @@ class TFT(object) :
     data2[0] = 0x3C   #VCOMH = 4V
     data2[1] = 0x38   #VCOML = -1.1V
     self._writedata(data2)
-    pyb.delay(10)
+    time.sleep_us(10)
 
     self._writecommand(TFT.PWCTR6)               #Power control
     data2[0] = 0x11
@@ -532,7 +535,7 @@ class TFT(object) :
                             0x2e, 0x37, 0x3f, 0x00, 0x00, 0x02, 0x10])
     self._writecommand(TFT.GMCTRN1)
     self._writedata(dataGMCTRN)
-    pyb.delay(10)
+    time.sleep_us(10)
 
     self._writecommand(TFT.CASET)                #Column address set.
     self.windowLocData[0] = 0x00
@@ -547,23 +550,23 @@ class TFT(object) :
     self._writedata(self.windowLocData)
 
     self._writecommand(TFT.NORON)                #Normal display on.
-    pyb.delay(10)
+    time.sleep_us(10)
 
     self._writecommand(TFT.RAMWR)
-    pyb.delay(500)
+    time.sleep_us(500)
 
     self._writecommand(TFT.DISPON)
-    self.cs.high()
-    pyb.delay(500)
+    self.cs(1)
+    time.sleep_us(500)
 
   def initr( self ) :
     '''Initialize a red tab version.'''
     self._reset()
 
     self._writecommand(TFT.SWRESET)              #Software reset.
-    pyb.delay(150)
+    time.sleep_us(150)
     self._writecommand(TFT.SLPOUT)               #out of sleep mode.
-    pyb.delay(500)
+    time.sleep_us(500)
 
     data3 = bytearray([0x01, 0x2C, 0x2D])       #fastest refresh, 6 lines front, 3 lines back.
     self._writecommand(TFT.FRMCTR1)              #Frame rate control.
@@ -575,7 +578,7 @@ class TFT(object) :
     data6 = bytearray([0x01, 0x2c, 0x2d, 0x01, 0x2c, 0x2d])
     self._writecommand(TFT.FRMCTR3)              #Frame rate control.
     self._writedata(data6)
-    pyb.delay(10)
+    time.sleep_us(10)
 
     data1 = bytearray(1)
     self._writecommand(TFT.INVCTR)               #Display inversion control
@@ -642,25 +645,25 @@ class TFT(object) :
                             0x30, 0x39, 0x3f, 0x00, 0x07, 0x03, 0x10])
     self._writecommand(TFT.GMCTRN1)
     self._writedata(dataGMCTRN)
-    pyb.delay(10)
+    time.sleep_us(10)
 
     self._writecommand(TFT.DISPON)
-    pyb.delay(100)
+    time.sleep_us(100)
 
     self._writecommand(TFT.NORON)                #Normal display on.
-    pyb.delay(10)
+    time.sleep_us(10)
 
-    self.cs.high()
+    self.cs(1)
 
-  @micropython.native
+  #@micropython.native
   def initg( self ) :
     '''Initialize a green tab version.'''
     self._reset()
 
     self._writecommand(TFT.SWRESET)              #Software reset.
-    pyb.delay(150)
+    time.sleep_us(150)
     self._writecommand(TFT.SLPOUT)               #out of sleep mode.
-    pyb.delay(255)
+    time.sleep_us(255)
 
     data3 = bytearray([0x01, 0x2C, 0x2D])       #fastest refresh, 6 lines front, 3 lines back.
     self._writecommand(TFT.FRMCTR1)              #Frame rate control.
@@ -672,11 +675,10 @@ class TFT(object) :
     data6 = bytearray([0x01, 0x2c, 0x2d, 0x01, 0x2c, 0x2d])
     self._writecommand(TFT.FRMCTR3)              #Frame rate control.
     self._writedata(data6)
-    pyb.delay(10)
+    time.sleep_us(10)
 
     self._writecommand(TFT.INVCTR)               #Display inversion control
-    self._writedata(0x07)
-
+    self._writedata(bytearray([0x07]))
     self._writecommand(TFT.PWCTR1)               #Power control
     data3[0] = 0xA2
     data3[1] = 0x02
@@ -684,7 +686,7 @@ class TFT(object) :
     self._writedata(data3)
 
     self._writecommand(TFT.PWCTR2)               #Power control
-    self._writedata(0xC5)
+    self._writedata(bytearray([0xC5]))
 
     data2 = bytearray(2)
     self._writecommand(TFT.PWCTR3)               #Power control
@@ -703,14 +705,14 @@ class TFT(object) :
     self._writedata(data2)
 
     self._writecommand(TFT.VMCTR1)               #Power control
-    self._writedata(0x0E)
+    self._writedata(bytearray([0x0E]))
 
     self._writecommand(TFT.INVOFF)
 
     self._setMADCTL()
 
     self._writecommand(TFT.COLMOD)
-    self._writedata(0x05)
+    self._writedata(bytearray([0x05]))
 
     self._writecommand(TFT.CASET)                #Column address set.
     self.windowLocData[0] = 0x00
@@ -734,12 +736,12 @@ class TFT(object) :
     self._writedata(dataGMCTRN)
 
     self._writecommand(TFT.NORON)                #Normal display on.
-    pyb.delay(10)
+    time.sleep_us(10)
 
     self._writecommand(TFT.DISPON)
-    pyb.delay(100)
+    time.sleep_us(100)
 
-    self.cs.high()
+    self.cs(1)
 
 def maker(  ) :
   t = TFT(1, "X1", "X2")
