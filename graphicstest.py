@@ -5,8 +5,8 @@ import time
 import math
 spi = SPI(1, baudrate=20000000, polarity=0, phase=0, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
 tft=TFT(spi,16,17,18)
-tft.initr()
-tft.rgb(True)
+tft.initr() # or initg() or initb(). it depends on tab colour of your TFT module.
+tft.rgb(True) # or rgb(False)
 
 def testlines(color):
     tft.fill(TFT.BLACK)
@@ -126,7 +126,7 @@ def tftprinttest():
     v += sysfont["Height"]
     tft.text((0, v), " seconds.", TFT.WHITE, sysfont)
 
-tft.fill(TFT.BLACK);
+tft.fill(TFT.BLACK)
 tft.text((0, 0), "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", TFT.WHITE, sysfont, 1)
 time.sleep_ms(1000)
 
