@@ -3,10 +3,10 @@ from sysfont import sysfont
 from machine import SPI,Pin
 import time
 import math
-spi = SPI(1, baudrate=20000000, polarity=0, phase=0, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
+spi = SPI(2, baudrate=20000000, polarity=0, phase=0, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
 tft=TFT(spi,16,17,18)
-tft.initr() # or initg() or initb(). it depends on tab colour of your TFT module.
-tft.rgb(True) # or rgb(False)
+tft.initr()
+tft.rgb(True)
 
 def testlines(color):
     tft.fill(TFT.BLACK)
@@ -126,32 +126,35 @@ def tftprinttest():
     v += sysfont["Height"]
     tft.text((0, v), " seconds.", TFT.WHITE, sysfont)
 
-tft.fill(TFT.BLACK)
-tft.text((0, 0), "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", TFT.WHITE, sysfont, 1)
-time.sleep_ms(1000)
+def test_main():
+    tft.fill(TFT.BLACK)
+    tft.text((0, 0), "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", TFT.WHITE, sysfont, 1)
+    time.sleep_ms(1000)
 
-tftprinttest()
-time.sleep_ms(4000)
+    tftprinttest()
+    time.sleep_ms(4000)
 
-testlines(TFT.YELLOW)
-time.sleep_ms(500)
+    testlines(TFT.YELLOW)
+    time.sleep_ms(500)
 
-testfastlines(TFT.RED, TFT.BLUE)
-time.sleep_ms(500)
+    testfastlines(TFT.RED, TFT.BLUE)
+    time.sleep_ms(500)
 
-testdrawrects(TFT.GREEN)
-time.sleep_ms(500)
+    testdrawrects(TFT.GREEN)
+    time.sleep_ms(500)
 
-testfillrects(TFT.YELLOW, TFT.PURPLE)
-time.sleep_ms(500)
+    testfillrects(TFT.YELLOW, TFT.PURPLE)
+    time.sleep_ms(500)
 
-tft.fill(TFT.BLACK)
-testfillcircles(10, TFT.BLUE)
-testdrawcircles(10, TFT.WHITE)
-time.sleep_ms(500)
+    tft.fill(TFT.BLACK)
+    testfillcircles(10, TFT.BLUE)
+    testdrawcircles(10, TFT.WHITE)
+    time.sleep_ms(500)
 
-testroundrects()
-time.sleep_ms(500)
+    testroundrects()
+    time.sleep_ms(500)
 
-testtriangles()
-time.sleep_ms(500)
+    testtriangles()
+    time.sleep_ms(500)
+
+test_main()
