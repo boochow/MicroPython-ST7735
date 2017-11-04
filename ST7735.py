@@ -277,7 +277,8 @@ class TFT(object) :
     if (stop[1] < start[1]):
       start, stop = stop, start
     self._setwindowloc(start, stop)
-    self._draw(aLen, aColor)
+    self._setColor(aColor)
+    self._draw(aLen)
 
 #   @micropython.native
   def hline( self, aStart, aLen, aColor ) :
@@ -288,7 +289,8 @@ class TFT(object) :
     if (stop[0] < start[0]):
       start, stop = stop, start
     self._setwindowloc(start, stop)
-    self._draw(aLen, aColor)
+    self._setColor(aColor)
+    self._draw(aLen)
 
 #   @micropython.native
   def rect( self, aStart, aSize, aColor ) :
@@ -317,7 +319,8 @@ class TFT(object) :
 
     self._setwindowloc(start, end)
     numPixels = (end[0] - start[0] + 1) * (end[1] - start[1] + 1)
-    self._draw(numPixels, aColor)
+    self._setColor(aColor)
+    self._draw(numPixels)
 
 #   @micropython.native
   def circle( self, aPos, aRadius, aColor ) :
@@ -373,15 +376,23 @@ class TFT(object) :
     self.fillrect((0, 0), self._size, aColor)
 
 #   @micropython.native
-  def _draw( self, aPixels, aColor ) :
-    '''Send given color to the device aPixels times.'''
+  def _setColor( self, aColor ) :
     self.colorData[0] = aColor >> 8
     self.colorData[1] = aColor
+    self.buf = bytes(self.colorData) * 32
+
+#   @micropython.native
+  def _draw( self, aPixels ) :
+    '''Send given color to the device aPixels times.'''
 
     self.dc(1)
     self.cs(0)
-    for i in range(aPixels):
-      self.spi.write(self.colorData)
+    for i in range(aPixels//32):
+      self.spi.write(self.buf)
+    rest = (int(aPixels) % 32)
+    if rest > 0:
+        buf2 = bytes(self.colorData) * rest
+        self.spi.write(buf2)
     self.cs(1)
 
 #   @micropython.native
