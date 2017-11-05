@@ -27,3 +27,6 @@ GND |GND
 
 [![YouTube image here](https://img.youtube.com/vi/xIy8DPBZsIk/0.jpg)](https://www.youtube.com/watch?v=xIy8DPBZsIk)
 
+tftbmp.py is another sample similar to [Adafruit's tftbmp sketch for Arduino](https://github.com/adafruit/Adafruit-ST7735-Library/blob/master/examples/spitftbitmap/spitftbitmap.ino).
+
+Place bmp file named 'test128x160.bmp' in the file system of MicroPython using file uploading tool such as [ampy](https://github.com/adafruit/ampy), etc.
