@@ -1,10 +1,10 @@
 # MicroPython-ST7735
 
-This is a modified version of [GuyCarver's ST7735.py](https://github.com/GuyCarver/MicroPython/blob/master/lib/ST7735.py).
+This is a modified version of [GuyCarver's ST7735.py](https://github.com/GuyCarver/MicroPython/blob/master/lib/ST7735.py) ST7735 TFT LCD driver for MicroPython.
 
 This version is for micropython-esp32.
 
-Any font file is necessary for displaying text (some font files are in [GuyCarver's repo](https://github.com/GuyCarver/MicroPython/tree/master/lib)).
+A font file is necessary for displaying text (some font files are in [GuyCarver's repo](https://github.com/GuyCarver/MicroPython/tree/master/lib)).
 
 Text nowrap option added(default: nowrap=False).
 
@@ -12,7 +12,7 @@ graphicstest.py is a sample code. I wrote this to make it similar to [Adafruit's
 
 Replace initr() at line 8 to initg() or initb() if your LCD module doesn't work correctly. You can also change rgb(True) to rgb(False) to switch red and blue pixels if your LCD module shows incorrect colors.
 
-Pin connection list:
+Pin connections:
 
 LCD |ESP32-DevKitC
 ----|----
