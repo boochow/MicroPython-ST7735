@@ -4,7 +4,7 @@ This is a modified version of [GuyCarver's ST7735.py](https://github.com/GuyCarv
 
 This version is for micropython-esp32.
 
-You need a font file (some font files are in [GuyCarver's repo](https://github.com/GuyCarver/MicroPython/tree/master/Lib)).
+Any font file is necessary for displaying text (some font files are in [GuyCarver's repo](https://github.com/GuyCarver/MicroPython/tree/master/Lib)).
 
 Text nowrap option added(default: nowrap=False).
 
