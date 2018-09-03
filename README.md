@@ -10,7 +10,7 @@ Text nowrap option added(default: nowrap=False).
 
 graphicstest.py is a sample code. I wrote this to make it similar to [Adafruit's graphicstest sketch for Arduino](https://github.com/adafruit/Adafruit-ST7735-Library/tree/master/examples/graphicstest). 
 
-Replace initr() at line 8 to initg() or initb() if your LCD module doesn't work correctly. You can also change rgb(True) to rgb(False) to switch red and blue pixels if your LCD module shows incorrect colors.
+If graphicstest.py doesn't work correctly, try replaceing initr() at line 8 to initg() or initb() or initb2(). You can also change rgb(True) to rgb(False) to switch red and blue pixels if your LCD module shows incorrect colors.
 
 Pin connections:
 
