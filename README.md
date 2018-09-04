@@ -22,7 +22,7 @@ A0  |IO16(DC)
 SDA |IO13(MOSI)
 SCK |IO14(CLK)
 VCC |3V3
-CS  |IO5
+CS  |IO18
 GND |GND
 
 [![YouTube image here](https://img.youtube.com/vi/xIy8DPBZsIk/0.jpg)](https://www.youtube.com/watch?v=xIy8DPBZsIk)
