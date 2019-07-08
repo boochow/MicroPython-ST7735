@@ -376,6 +376,10 @@ class TFT(object) :
     '''Fill screen with the given color.'''
     self.fillrect((0, 0), self._size, aColor)
 
+  def image( self, x0, y0, x1, y1, data ) :
+    self._setwindowloc((x0, y0), (x1, y1))
+    self._writedata(data)
+    
 #   @micropython.native
   def _setColor( self, aColor ) :
     self.colorData[0] = aColor >> 8
