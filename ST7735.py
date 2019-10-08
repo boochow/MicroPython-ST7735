@@ -57,6 +57,9 @@ class TFT(object) :
   RAMWR = 0x2C
   RAMRD = 0x2E
 
+  VSCRDEF = 0x33
+  VSCSAD = 0x37
+
   COLMOD = 0x3A
   MADCTL = 0x36
 
@@ -381,6 +384,22 @@ class TFT(object) :
   def image( self, x0, y0, x1, y1, data ) :
     self._setwindowloc((x0, y0), (x1, y1))
     self._writedata(data)
+
+  def setvscroll(self, tfa, bfa) :
+    ''' set vertical scroll area. tfa:top fixed area, bfa:bottom fixed area.'''
+    self._writecommand(TFT.VSCRDEF)
+    data2 = bytearray([0, tfa])
+    self._writedata(data2)
+    data2[1] = self._size[1] - tfa - bfa
+    self._writedata(data2)
+    data2[1] = bfa
+    self._writedata(data2)
+
+  def vscroll(self, addr) :
+    ''' scroll whole sreen for addr pixels'''
+    self._writecommand(TFT.VSCSAD)
+    data2 = bytearray([addr >> 8, addr & 0xff])
+    self._writedata(data2)
     
 #   @micropython.native
   def _setColor( self, aColor ) :
