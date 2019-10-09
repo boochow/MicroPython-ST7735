@@ -390,7 +390,7 @@ class TFT(object) :
     self._writecommand(TFT.VSCRDEF)
     data2 = bytearray([0, tfa])
     self._writedata(data2)
-    data2[1] = self._size[1] - tfa - bfa
+    data2[1] = 162 - tfa - bfa
     self._writedata(data2)
     data2[1] = bfa
     self._writedata(data2)
