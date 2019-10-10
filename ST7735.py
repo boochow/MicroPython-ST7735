@@ -111,6 +111,8 @@ class TFT(object) :
     self._offset = bytearray([0,0])
     self.rotate = 0                    #Vertical with top toward pins.
     self._rgb = True                   #color order of rgb.
+    self.tfa = 0                       #top fixed area
+    self.bfa = 0                       #bottom fixed area
     self.dc  = machine.Pin(aDC, machine.Pin.OUT, machine.Pin.PULL_DOWN)
     self.reset = machine.Pin(aReset, machine.Pin.OUT, machine.Pin.PULL_DOWN)
     self.cs = machine.Pin(aCS, machine.Pin.OUT, machine.Pin.PULL_DOWN)
@@ -386,7 +388,7 @@ class TFT(object) :
     self._writedata(data)
 
   def setvscroll(self, tfa, bfa) :
-    ''' set vertical scroll area. tfa:top fixed area, bfa:bottom fixed area.'''
+    ''' set vertical scroll area '''
     self._writecommand(TFT.VSCRDEF)
     data2 = bytearray([0, tfa])
     self._writedata(data2)
@@ -394,9 +396,16 @@ class TFT(object) :
     self._writedata(data2)
     data2[1] = bfa
     self._writedata(data2)
+    self.tfa = tfa
+    self.bfa = bfa
 
-  def vscroll(self, addr) :
-    ''' scroll whole sreen for addr pixels'''
+  def vscroll(self, value) :
+    a = value + self.tfa
+    if (a + self.bfa > 162) :
+      a = 162 - self.bfa
+    self._vscrolladdr(a)
+
+  def _vscrolladdr(self, addr) :
     self._writecommand(TFT.VSCSAD)
     data2 = bytearray([addr >> 8, addr & 0xff])
     self._writedata(data2)
